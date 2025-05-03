@@ -2,3 +2,11 @@ pip install socket
 pip install cryptography
 pip install rsa
 pip install PyQt5
+
+
+
+pip install transformers
+pip install socket
+pip install tkinter
+pip install pillow  # Untuk mengelola gambar
+pip install requests
