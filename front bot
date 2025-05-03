@@ -1,0 +1,84 @@
+import tkinter as tk
+from tkinter import filedialog
+import socket
+import base64
+from PIL import ImageTk, Image
+
+# Koneksi ke server
+def connect_to_server():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(("127.0.0.1", 9999))
+    return client_socket
+
+# Fungsi untuk mengirimkan pesan
+def send_message():
+    message = message_entry.get()
+    if message:
+        client_socket.send(message.encode())
+        message_entry.delete(0, tk.END)
+        display_message(f"You: {message}")
+        receive_message()
+
+# Fungsi untuk menerima respons dari bot
+def receive_message():
+    response = client_socket.recv(1024).decode()
+    display_message(f"Bot: {response}")
+
+# Fungsi untuk menampilkan pesan pada UI
+def display_message(message):
+    chat_box.config(state=tk.NORMAL)
+    chat_box.insert(tk.END, message + "\n")
+    chat_box.config(state=tk.DISABLED)
+    chat_box.yview(tk.END)
+
+# Fungsi untuk mengirim gambar
+def send_image():
+    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+    if file_path:
+        with open(file_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode()
+            message = f"file:{encoded_image}"
+            client_socket.send(message.encode())
+            display_message(f"You sent an image.")
+            receive_message()
+
+# Fungsi untuk mengirim file
+def send_file():
+    file_path = filedialog.askopenfilename()
+    if file_path:
+        with open(file_path, "rb") as file:
+            encoded_file = base64.b64encode(file.read()).decode()
+            message = f"file:{encoded_file}"
+            client_socket.send(message.encode())
+            display_message(f"You sent a file.")
+            receive_message()
+
+# Membuat GUI menggunakan Tkinter
+root = tk.Tk()
+root.title("Chatbot Application")
+
+# Membuat kotak percakapan
+chat_box = tk.Text(root, width=50, height=15, state=tk.DISABLED)
+chat_box.pack(pady=10)
+
+# Membuat entry untuk pesan
+message_entry = tk.Entry(root, width=40)
+message_entry.pack(padx=10, pady=10)
+
+# Tombol kirim pesan
+send_button = tk.Button(root, text="Send", command=send_message)
+send_button.pack(pady=5)
+
+# Tombol kirim gambar
+send_image_button = tk.Button(root, text="Send Image", command=send_image)
+send_image_button.pack(pady=5)
+
+# Tombol kirim file
+send_file_button = tk.Button(root, text="Send File", command=send_file)
+send_file_button.pack(pady=5)
+
+# Menghubungkan ke server
+client_socket = connect_to_server()
+
+# Menjalankan aplikasi Tkinter
+root.mainloop()
