@@ -1,0 +1,44 @@
+# server/server.py
+import socket
+import threading
+from encryption import RSAEncryptor, AESEncryptor
+from bot import ChatBot
+
+# Inisialisasi server
+HOST = '127.0.0.1'
+PORT = 12345
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind((HOST, PORT))
+server.listen(5)
+
+clients = {}
+bot = ChatBot()
+
+def handle_client(client_socket, address):
+    print(f"Connection from {address}")
+    while True:
+        try:
+            message = client_socket.recv(1024).decode('utf-8')
+            if message == 'BOT':
+                response = bot.respond("Apa kabar?")
+                client_socket.send(response.encode('utf-8'))
+            else:
+                broadcast(message, client_socket)
+        except:
+            client_socket.close()
+            break
+
+def broadcast(message, sender_socket):
+    for client in clients.values():
+        if client != sender_socket:
+            client.send(message.encode('utf-8'))
+
+def main():
+    print("Server is running...")
+    while True:
+        client_socket, address = server.accept()
+        clients[address] = client_socket
+        threading.Thread(target=handle_client, args=(client_socket, address)).start()
+
+if __name__ == "__main__":
+    main()
