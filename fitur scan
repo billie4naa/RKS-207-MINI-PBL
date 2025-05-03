@@ -1,0 +1,14 @@
+# client/qr_scan.py
+import qrcode
+from PIL import Image
+
+def generate_qr(data):
+    qr = qrcode.QRCode()
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill="black", back_color="white")
+    img.save("qr_code.png")
+
+def read_qr(file_path):
+    img = Image.open(file_path)
+    return img
